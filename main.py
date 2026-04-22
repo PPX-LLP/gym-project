@@ -10,8 +10,10 @@ def choose_action(state, q_table, epsilon, action_size):
     # TODO 1:
     # 如果随机数小于 epsilon，就随机探索
     # 否则选择当前状态下 Q 值最大的动作
-    pass
-
+    if random.random() <epsilon:
+        return random.randint(0,action_size-1)
+    else:
+        return np.argmax(q_table[state])
 
 def train_q_learning(
     env,
@@ -49,14 +51,16 @@ def train_q_learning(
             # 3. 计算 Q-learning 的更新目标
             # TODO 2:
             # 如果当前回合结束，则 td_target = reward
-            # 否则 td_target = reward + gamma * np.max(q_table[next_state])
-            td_target = None
-
+            # 否则 td_target = reward + gamma * np.max(q_table[next_state]
+            if terminated or truncated:
+                td_target=reward
+            else: 
+                td_target=reward+gamma*np.max(q_table[next_state])
             # 4. 更新 Q 值
             # TODO 3:
             # 按照 Q-learning 更新公式更新 q_table[state][action]
-            #
-            # Q(s,a) = Q(s,a) + alpha * (td_target - Q(s,a))
+            #q_stable[state][action]
+            q_table[state][action] = q_table[state][action] + alpha * (td_target - q_table[state][action])
             #
 
             # 5. 状态推进
@@ -69,7 +73,7 @@ def train_q_learning(
         # 6. 衰减 epsilon
         # TODO 4:
         # 让 epsilon 逐渐减小，但不要低于 epsilon_min
-
+        epsilon = max(epsilon_min, epsilon * epsilon_decay)
         episode_rewards.append(total_reward)
 
         if (episode + 1) % 50 == 0:
@@ -90,7 +94,7 @@ def test_agent(env, q_table, max_steps=100):
     for step in range(max_steps):
         # TODO 5:
         # 选择当前状态下 Q 值最大的动作
-        action = None
+        action = np.argmax(q_table[state])
 
         next_state, reward, terminated, truncated, info = env.step(action)
         total_reward += reward
